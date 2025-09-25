@@ -7,7 +7,7 @@ https://github.com/OS2Forms/os2forms/tree/develop/modules/os2forms_digital_signa
 
 ## How does it work
 
-This module is passively waiting for the requests on endpoint `/sing`.
+This module is passively waiting for the requests on endpoint `/sign`.
 The request type is identified by the `action` argument.
 Supported operations:
 * `getcid`: Retrieves a correlation ID (randon UUID)
