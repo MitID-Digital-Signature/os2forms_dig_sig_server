@@ -12,6 +12,7 @@ use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -51,7 +52,7 @@ class SigningService {
    * @return string $id
    *   The id, e.g. '7f03374d-5488-49cc-b952-0abfa297e3df'.
    */
-  public function getCorrelationId() {
+  public function getCorrelationId() : string {
     return $this->uuid->generate();
   }
 
@@ -69,6 +70,7 @@ class SigningService {
    *
    * @return TrustedRedirectResponse
    *   Redirect to the signing process.
+   * @throws \Exception
    */
   public function sign(string $uri, string $forward_url, string $hash) : TrustedRedirectResponse {
     $filename = base64_decode($uri);
@@ -84,7 +86,7 @@ class SigningService {
     try {
       $response = $this->doSign($filename);
     }
-    catch (SigningException $e) {
+    catch (\Throwable $e) {
       $this->logger->error('Signing failed: %message', ['%message' => $e->getMessage()]);
       throw new \Exception('Signing failed');
     }
@@ -102,6 +104,11 @@ class SigningService {
    *   The filename. It will be prefixed by SIGN_UPLOADED_PDF_DIR.
    *   It may point to an external file (https://...) if php.ini allow_url_fopen is 'On' and the
    *   domain name is on our list of valid domains, SIGN_ALLOWED_DOMAINS.
+   * @return TrustedRedirectResponse
+   *   Redirect response.
+   *
+   * @throws SigningException
+   * @throws GuzzleException
    */
   private function doSign(string $filename) : TrustedRedirectResponse {
     // Generate a temporary filename in the SIGN_PDF_SOURCE_DIR. Crash out after n seconds if we still don't have a unique name.
@@ -189,7 +196,20 @@ class SigningService {
   /**
    * Download the signed file.
    */
-  public function download(string $file, bool $leave) {
+
+  /**
+   * Sends the file as a binary response.
+   *
+   * @param string $file
+   *   File to attempt download for.
+   * @param bool $leave
+   *   If a file should be left on the server.
+   *   TRUE - file remains untouched.
+   *   FALSE - file will be deleted after sending.
+   * @return BinaryFileResponse
+   *   Found a file.
+   */
+  public function download(string $file, bool $leave) : BinaryFileResponse {
     if (!preg_match('/^[a-z0-9]{32}\.pdf$/', $file)) {
       throw new BadRequestHttpException("Invalid file name: $file. Must be contain letters or numbers and be 32 chars long");
     }
@@ -226,7 +246,7 @@ class SigningService {
    * @return bool
    *   TRUE if url is known, otherwise FALSE.
    */
-  private function isValidUrl($url) : bool {
+  private function isValidUrl(string $url) : bool {
     $prefix = preg_replace('@https?://([^/:]*).*@', '$1', $url);
 
     if ($allowedDomains = $this->config->get('allowed_domains')) {

@@ -88,7 +88,7 @@ class SettingsForm extends ConfigFormBase {
     // Removing slash from URL.
     $values['signing_service_url'] = rtrim($values['signing_service_url'], '/\\');
 
-    // Adding slash to the end of the path.
+    // Removing slash at the end of the string.
     $values['working_dir'] = rtrim($values['working_dir'], '/\\');
 
     $config = $this->config(self::$configName);
