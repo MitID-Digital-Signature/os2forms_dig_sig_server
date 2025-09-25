@@ -1,0 +1,17 @@
+os2forms_dig_sig_server.signing:
+  path: '/sign'
+  defaults:
+    _controller: '\Drupal\os2forms_dig_sig_server\Controller\SigningController::signingCallback'
+    _title: 'Signing'
+  options:
+    no_cache: 'TRUE'
+  requirements:
+    _permission: 'access content'
+os2forms_dig_sig_server.settings:
+  path: '/admin/os2forms_dig_sig_server/settings'
+  defaults:
+    _form: '\Drupal\os2forms_dig_sig_server\Form\SettingsForm'
+    _title: 'Signing adapter settings'
+  requirements:
+    _permission: 'administer site configuration'
+

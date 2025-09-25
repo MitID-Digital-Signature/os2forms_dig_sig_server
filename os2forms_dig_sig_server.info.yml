@@ -1,0 +1,4 @@
+name: 'OS2forms Digital Signature server'
+type: module
+description: 'Server for handling digital signatures'
+core_version_requirement: ^10 | ^11
