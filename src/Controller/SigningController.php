@@ -21,7 +21,7 @@ class SigningController extends ControllerBase {
 
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('os2forms_dig_sig_server.signing_service'),
+      $container->get(SigningService::class),
       $container->get('request_stack'),
     );
   }
@@ -41,7 +41,7 @@ class SigningController extends ControllerBase {
    *    Returns a JSON response containing the result of the specified action.
    *    Or TrustedRedirectResponse.
    */
-  public function signingCallback() {
+  public function signingCallback(): Response {
     $request = $this->requestStack->getCurrentRequest();
     $action = $request->query->get('action');
 
@@ -53,20 +53,20 @@ class SigningController extends ControllerBase {
 
         case 'sign':
           $uri = $request->query->get('uri');
-          $forward_url = $request->query->get('forward_url');
+          $forwardUrl = $request->query->get('forward_url');
           $hash = $request->query->get('hash');
 
           if (empty($uri)) {
             throw new BadRequestHttpException('Parameter uri is required.');
           }
-          if (empty($forward_url)) {
+          if (empty($forwardUrl)) {
             throw new BadRequestHttpException('Parameter forward_url is required.');
           }
           if (empty($hash)) {
             throw new BadRequestHttpException('Parameter forward_url is required.');
           }
 
-          return $this->signingService->sign($uri, $forward_url, $hash);
+          return $this->signingService->sign($uri, $forwardUrl, $hash);
 
         case 'cancel':
         case 'result':

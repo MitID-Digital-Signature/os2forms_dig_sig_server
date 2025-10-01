@@ -41,7 +41,7 @@ class SigningService {
     private readonly FileSystemInterface $fileSystem,
     ConfigFactoryInterface $configFactory,
   ) {
-    $this->config = $configFactory->get(SettingsForm::$configName);
+    $this->config = $configFactory->get(SettingsForm::CONFIG_NAME);
   }
 
   /**
@@ -52,7 +52,7 @@ class SigningService {
    * @return string $id
    *   The id, e.g. '7f03374d-5488-49cc-b952-0abfa297e3df'.
    */
-  public function getCorrelationId() : string {
+  public function getCorrelationId(): string {
     return $this->uuid->generate();
   }
 
@@ -63,7 +63,7 @@ class SigningService {
    *
    * @param string $uri
    *   File URI in base64.
-   * @param string $forward_url
+   * @param string $forwardUrl
    *   Redirect URL in base64.
    * @param string $hash
    *   Hash to validate that request is of the trusted source.
@@ -72,13 +72,13 @@ class SigningService {
    *   Redirect to the signing process.
    * @throws \Exception
    */
-  public function sign(string $uri, string $forward_url, string $hash) : TrustedRedirectResponse {
+  public function sign(string $uri, string $forwardUrl, string $hash): TrustedRedirectResponse {
     $filename = base64_decode($uri);
     if (empty($filename) || !preg_match('@^https?://.*\.pdf$|^/[a-zA-Z].*/.*\.pdf$@', $filename)) {
       throw new BadRequestHttpException("Invalid filename given ($filename).");
     }
 
-    $forward = base64_decode($forward_url);
+    $forward = base64_decode($forwardUrl);
     if (!$this->validateHash($hash, $forward)) {
       throw new BadRequestHttpException('Incorrect hash value');
     }
@@ -92,7 +92,7 @@ class SigningService {
     }
 
     // Setting cookies.
-    $response->headers->setCookie(new Cookie(SigningService::FORWARD_URL_COOKIE, $forward_url));
+    $response->headers->setCookie(new Cookie(SigningService::FORWARD_URL_COOKIE, $forwardUrl));
 
     return $response;
   }
@@ -110,7 +110,7 @@ class SigningService {
    * @throws SigningException
    * @throws GuzzleException
    */
-  private function doSign(string $filename) : TrustedRedirectResponse {
+  private function doSign(string $filename): TrustedRedirectResponse {
     // Generate a temporary filename in the SIGN_PDF_SOURCE_DIR. Crash out after n seconds if we still don't have a unique name.
     $loop = 10;
 
@@ -172,7 +172,7 @@ class SigningService {
    * @return TrustedRedirectResponse
    *   Redirect response.
    */
-  public function result(string $file, string $action) : TrustedRedirectResponse {
+  public function result(string $file, string $action): TrustedRedirectResponse {
     $request = $this->requestStack->getCurrentRequest();
 
     if (empty($cookie = $request->cookies->get(SigningService::FORWARD_URL_COOKIE) ?? NULL)) {
@@ -209,9 +209,9 @@ class SigningService {
    * @return BinaryFileResponse
    *   Found a file.
    */
-  public function download(string $file, bool $leave) : BinaryFileResponse {
+  public function download(string $file, bool $leave): BinaryFileResponse {
     if (!preg_match('/^[a-z0-9]{32}\.pdf$/', $file)) {
-      throw new BadRequestHttpException("Invalid file name: $file. Must be contain letters or numbers and be 32 chars long");
+      throw new BadRequestHttpException("Invalid file name: $file. Must be exactly 32 letters or numbers followed by '.pdf', e.g. '91d56055f7274fdeb327077d1e32e5d1.pdf");
     }
 
     $signedPdf = $this->getSignedFilesDir() . '/' . substr($file, 0, 32) . '-signed.pdf';
@@ -246,12 +246,12 @@ class SigningService {
    * @return bool
    *   TRUE if url is known, otherwise FALSE.
    */
-  private function isValidUrl(string $url) : bool {
-    $prefix = preg_replace('@https?://([^/:]*).*@', '$1', $url);
+  private function isValidUrl(string $url): bool {
+    $host = parse_url($url, PHP_URL_HOST);
 
     if ($allowedDomains = $this->config->get('allowed_domains')) {
       $allowedDomains = preg_split('/, */', $allowedDomains);
-      return in_array($prefix, $allowedDomains);
+      return in_array($host, $allowedDomains);
     }
 
     $this->logger->warning('List of allowed domains is empty. It is recommended to provide it. Allowing request from %url', ['%url' => $url]);
@@ -270,7 +270,7 @@ class SigningService {
    *   TRUE if the computed hash of $value matches $expectedHash,
    *   FALSE otherwise.
    */
-  private function validateHash(string $expectedHash, string $value) : bool {
+  private function validateHash(string $expectedHash, string $value): bool {
     return hash_equals($expectedHash, $this->createHash($value));
   }
 
@@ -283,7 +283,7 @@ class SigningService {
    * @return string
    *   The salted SHA-1 hash of the value.
    */
-  private function createHash(string $value) : string {
+  private function createHash(string $value): string {
     $signingHashSalt = $this->config->get('signing_hash_salt');
 
     if (!$signingHashSalt) {
@@ -300,7 +300,7 @@ class SigningService {
    *
    * @return string
    */
-  private function getSourceFilesDir() : string{
+  private function getSourceFilesDir(): string{
     $workingDir = $this->config->get('working_dir');
     $sourceDir = $workingDir . '/source';
     if (!$workingDir || !$this->fileSystem->prepareDirectory($sourceDir, FileSystemInterface::CREATE_DIRECTORY)) {
@@ -317,7 +317,7 @@ class SigningService {
    *
    * @return string
    */
-  private function getUploadFilesDir() : string {
+  private function getUploadFilesDir(): string {
     $workingDir = $this->config->get('working_dir');
     $uploadDir = $workingDir . '/upload';
     if (!$workingDir || !$this->fileSystem->prepareDirectory($uploadDir, FileSystemInterface::CREATE_DIRECTORY)) {
@@ -334,7 +334,7 @@ class SigningService {
    *
    * @return string
    */
-  private function getSignedFilesDir() : string {
+  private function getSignedFilesDir(): string {
     $workingDir = $this->config->get('working_dir');
     $signedDir = $workingDir . '/signed';
     if (!$workingDir || !$this->fileSystem->prepareDirectory($signedDir, FileSystemInterface::CREATE_DIRECTORY)) {
@@ -353,7 +353,7 @@ class SigningService {
    *   Message context
    * @return void
    */
-  public function debug(string $message, array $context = []) : void {
+  public function debug(string $message, array $context = []): void {
     if ($this->config->get('debug_mode')) {
       $this->logger->info($message, $context);
     }

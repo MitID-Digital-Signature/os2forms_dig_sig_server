@@ -2,12 +2,8 @@ services:
   logger.channel.os2forms_dig_sig_server:
     parent: logger.channel_base
     arguments: [ 'os2forms_dig_sig_server' ]
-  os2forms_dig_sig_server.signing_service:
+  Drupal\os2forms_dig_sig_server\Service\SigningService:
     class: Drupal\os2forms_dig_sig_server\Service\SigningService
+    autowire: true
     arguments:
-      - '@http_client'
-      - '@uuid'
-      - '@request_stack'
-      - '@logger.channel.os2forms_dig_sig_server'
-      - '@file_system'
-      - '@config.factory'
+      $logger: '@logger.channel.os2forms_dig_sig_server'
