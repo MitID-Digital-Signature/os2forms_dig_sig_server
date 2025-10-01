@@ -111,18 +111,9 @@ class SigningService {
    * @throws GuzzleException
    */
   private function doSign(string $filename): TrustedRedirectResponse {
-    // Generate a temporary filename in the SIGN_PDF_SOURCE_DIR. Crash out after n seconds if we still don't have a unique name.
-    $loop = 10;
+    // Generating unique name, 32 chars exactly.
+    $signingPdf = $this->getSourceFilesDir() . '/' . md5($filename . microtime() . uniqid()) . '.pdf';
 
-    // We use md5 here to generate a temp filename instead of sha1 because since it's shorter
-    // and the Java implementation has a limit of filename length.
-    while (file_exists($signingPdf = $this->getSourceFilesDir() . '/' . md5($filename . time()) . '.pdf')) {
-      // Note: We shouldn't really reach this point.
-      if (!--$loop) {
-        throw new SigningException('Unexpected existing temp file');
-      }
-      sleep(1);
-    }
     $external = (bool) preg_match('!^https?://!i', $filename);
 
     if ($external && !$this->isValidUrl($filename)) {
