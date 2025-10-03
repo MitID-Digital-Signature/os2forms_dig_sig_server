@@ -43,3 +43,17 @@ The following settings are available:
 - **Enable debug mode**
 
   When enabled, debug messages about signing operations are logged to Drupal watchdog.
+
+
+# Nginx configuration 
+
+The installation implementing Digital Signature must have this canonical redirect for /sign.php
+
+    if ($request_uri ~* ^/sign\.php(?:\?|$)) {
+
+        return 301 /sign?$args;
+
+    }
+
+
+
