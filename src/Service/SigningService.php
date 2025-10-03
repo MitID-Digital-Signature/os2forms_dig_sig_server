@@ -13,6 +13,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -37,6 +38,7 @@ class SigningService {
     private readonly ClientInterface $httpClient,
     private readonly UuidInterface $uuid,
     private readonly RequestStack $requestStack,
+    #[Autowire(service: 'logger.channel.os2forms_dig_sig_server')]
     private readonly LoggerChannelInterface $logger,
     private readonly FileSystemInterface $fileSystem,
     ConfigFactoryInterface $configFactory,
