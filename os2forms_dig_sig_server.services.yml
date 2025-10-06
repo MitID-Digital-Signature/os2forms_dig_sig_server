@@ -1,0 +1,6 @@
+services:
+  logger.channel.os2forms_dig_sig_server:
+    parent: logger.channel_base
+    arguments: [ 'os2forms_dig_sig_server' ]
+  Drupal\os2forms_dig_sig_server\Service\SigningService:
+    autowire: true
