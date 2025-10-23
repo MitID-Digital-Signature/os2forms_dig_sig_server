@@ -2,8 +2,7 @@
 
 ## Module purpose
 
-This module provides Digital signature server functionality for Digital Signature clients, implemented by this module:
-https://github.com/OS2Forms/os2forms/tree/develop/modules/os2forms_digital_signature
+This module provides Digital signature server functionality for Digital Signature clients, implemented by this module (https://github.com/OS2Forms/os2forms/tree/develop/modules/os2forms_digital_signature) and have to be installed on a server along with this backend component (https://github.com/MitID-Digital-Signature/Signing-Server/)
 
 ## How does it work
 
