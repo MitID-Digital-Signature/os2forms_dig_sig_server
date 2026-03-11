@@ -1,0 +1,9 @@
+{
+    "name": "mitid-digital-signature/os2forms_dig_sig_server",
+    "description": "This module provides Digital signature server functionality for Digital Signature clients",
+    "type": "drupal-module",
+    "license": "EUPL-1.2",
+    "require": {
+      "drupal/core": "^10 || ^11"
+    }
+}
